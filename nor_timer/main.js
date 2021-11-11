@@ -58,6 +58,8 @@ function reset() {
   time = 0;
   time_A = 0;
   time_B = 0;
+  timeA = 0;
+  timeB = 0;
   timer.innerHTML = toHHMMSS(time);
   timer_A.innerHTML = toHHMMSS(time_A);
   timer_B.innerHTML = toHHMMSS(time_B);
@@ -90,7 +92,7 @@ function hideBtn(btnArr) {
 // Object A
 let time_A = 0,
   interval_A;
-var timeA;
+var timeA = 0;
 
 function showTime_A() {
   time_A += 1;
@@ -135,7 +137,7 @@ function hideBtn_A(btnArr) {
 // Object B
 let time_B = 0,
   interval_B;
-var timeB;
+var timeB = 0;
 
 function showTime_B() {
   time_B += 1;
