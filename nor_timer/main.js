@@ -24,8 +24,8 @@ function showTime() {
 }
 
 function start() {
-  interval = setInterval(showTime, 1000);
-  setInterval(showTimeObjects, 1000);
+  interval = setInterval(showTime, 100);
+  setInterval(showTimeObjects, 100);
   hideBtn([start_btn]);
   showBtn([pause_btn, reset_btn]);
 }
@@ -40,7 +40,7 @@ function pause() {
     interval_B = null;
     pause_btn.innerHTML = 'RESUME';
   } else {
-    interval = setInterval(showTime, 1000);
+    interval = setInterval(showTime, 100);
     pause_btn.innerHTML = 'PAUSE';
   }
 }
@@ -72,15 +72,13 @@ function reset() {
 }
 
 function toHHMMSS(time) {
-  let hours = Math.floor(time / 3600);
-  let minutes = Math.floor((time - hours * 3600) / 60);
-  let seconds = time - hours * 3600 - minutes * 60;
+  let minutes = Math.floor(time / 600);
+  let seconds = (time - (minutes * 600)) / 10;
 
-  hours = `${hours}`.padStart(2, '0');
   minutes = `${minutes}`.padStart(2, '0');
-  seconds = `${seconds}`.padStart(2, '0');
+  seconds = seconds.toFixed(1);
 
-  return hours + ':' + minutes + ':' + seconds;
+  return  minutes + ':' + seconds;
 }
 
 function showBtn(btnArr) {
@@ -101,7 +99,7 @@ function showTime_A() {
 }
 
 function start_A() {
-  interval_A = setInterval(showTime_A, 1000);
+  interval_A = setInterval(showTime_A, 100);
   hideBtn_A([start_btn_A]);
   showBtn_A([pause_btn_A]);
 }
@@ -112,7 +110,7 @@ function pause_A() {
     interval_A = null;
     pause_btn_A.innerHTML = 'RESUME';
   } else {
-    interval_A = setInterval(showTime_A, 1000);
+    interval_A = setInterval(showTime_A, 100);
     pause_btn_A.innerHTML = 'PAUSE';
   }
 }
@@ -146,7 +144,7 @@ function showTime_B() {
 }
 
 function start_B() {
-  interval_B = setInterval(showTime_B, 1000);
+  interval_B = setInterval(showTime_B, 100);
   hideBtn_B([start_btn_B]);
   showBtn_B([pause_btn_B]);
 }
@@ -157,7 +155,7 @@ function pause_B() {
     interval_B = null;
     pause_btn_B.innerHTML = 'RESUME';
   } else {
-    interval_B = setInterval(showTime_B, 1000);
+    interval_B = setInterval(showTime_B, 100);
     pause_btn_B.innerHTML = 'PAUSE';
   }
 }
@@ -185,6 +183,7 @@ function showTimeObjects() {
 }
 
 function sum_time(t1, t2) {
-    let total_time = t1 + t2;
+    let total_time = (t1 + t2) / 10;
+    total_time = total_time.toFixed(1);
     return total_time
 }
