@@ -1,0 +1,364 @@
+---
+title: Frank's RNAseq Analysis Pipeline 
+author: Frank Bearoff
+date: 01/27/2023
+toc-title: Contents
+project:
+  type: website
+  output-dir: docs
+---
+
+<!--toc:start-->
+
+- [Introduction](#introduction)
+- [Perform quantification against the transcriptome](#perform-quantification-against-the-transcriptome)
+  - [Prepare your working environment](#prepare-your-working-environment)
+  - [Download the genome and transcriptome for your organism of interest](#download-the-genome-and-transcriptome-for-your-organism-of-interest)
+    - [Genome](#genome)
+    - [Transcriptome](#transcriptome)
+  - [Prepare the index](#prepare-the-index)
+  - [Edit your quantifying script](#edit-your-quantifying-script)
+  - [Quantify the RNAseq data against your prepared index](#quantify-the-rnaseq-data-against-your-prepared-index)
+- [Data analysis](#data-analysis)
+  - [Prepare your sample table](#prepare-your-sample-table)
+  - [Login to RStudio](#login-to-rstudio)
+  - [Start a new project in your project directory](#start-a-new-project-in-your-project-directory)
+  - [Upload your sample table](#upload-your-sample-table)
+  - [Read in quantified abundance files](#read-in-quantified-abundance-files)
+  - [QC](#qc)
+  - [Differential expression analysis](#differential-expression-analysis)
+- [Conclusion](#conclusion)
+
+<!--toc:end-->
+
+# Introduction
+
+This brief tutorial will show you the general steps I use when analyzing RNAseq
+data. A majority of this pipeline has been streamlined and many assumptions have
+been made about the structure of the data and the experimental design as a
+starting point for your analysis.
+
+I will assume you have sequenced your samples using
+[GENEWIZ](https://www.genewiz.com/) and your data has been transferred to our
+server. You will have a data structure that looks like the following:
+
+- Project Name
+  - Project ID
+    - fastq_00
+      - sampleID_R1_001.fastq.gz
+      - sampleID_R2_001.fastq.gz
+
+# Perform quantification against the transcriptome
+
+We will first take our RNAseq data and quantify it against the reference
+transcriptome for our organism of interest using
+[Salmon](https://www.nature.com/articles/nmeth.4197).
+
+> _**NOTE:**_ Variables you will need to change are in ALL CAPS
+
+Access the server via `ssh YOURUSERNAME@10.18.160.45`
+
+> **_NOTE:_** You will need to be _plugged into_ the network to access the
+> server
+
+Enter a TMUX session by typing `tmux`
+
+> **_NOTE:_** You can exit TMUX at any point without losing your session by
+> typing `CTRL-b d`
+
+> **_NOTE:_** Re-enter your TMUX session by typing `tmux a`
+
+## Prepare your working environment
+
+Make a directory for you projects `mkdir PROJECTS`
+
+Change into that directory `cd PROJECTS`
+
+Make a directory for your project `mkdir MYPROJECT`
+
+Change into that directory `cd MYPROJECT`
+
+Copy the RNAseq template scripts to your current directory
+`cp /srv/data/scripts/rnaseq/* .`
+
+> **_NOTE:_** There is a period at the end of this command, it denotes your
+> current working directory
+
+## Download the genome and transcriptome for your organism of interest
+
+Retrieve these files from
+[Ensembl Downloads](https://useast.ensembl.org/info/data/ftp/index.html)
+
+### Genome
+
+- Find your organism and click the first "FASTA" link for "DNA"
+- Find the file named **"\*.primary.assembly.fa.gz"**
+- Right click, copy the link, and issue the following command it to download to
+  the server `wget YOUR_DNA_LINK`
+
+> **_NOTE:_** You can paste in a terminal by right clicking
+
+### Transcriptome
+
+- Find your organism and click the second "FASTA" link for "cDNA"
+- Find the file named **"\*.cdna.all.fa.gz"**
+- Right click, copy the link, and issue the following command to download to the
+  server `wget YOUR_TRANSCRIPTOME_LINK`
+
+![](./images/ensembl.png)
+
+## Prepare the index
+
+Issue the following command to make the index files `./prepare_index.sh`
+
+> **_NOTE:_** This will take some time, be patient, maybe stretch or grab a
+> coffee ☕
+
+## Edit your quantifying script
+
+Edit your script file to include your RNAseq read files `nano salmon_script.sh`
+
+Replace `YOUR_PROJECT_NAME/YOUR_PROJECT_ID` on line 3 with your specific values
+
+> **_EXAMPLE:_**
+> `read_files="$HOME/data/rnaseq/rnaseq_run_1/30-689021056/00_fastq"`
+
+> **_NOTE:_** Do not add a trailing slash to the directory name.
+
+Exit nano with `CTRL-X`, save your changes by hitting `y`
+
+## Quantify the RNAseq data against your prepared index
+
+Run the quantifying script by issuing the following command:
+`./salmon_script.sh`
+
+> **_NOTE:_** This will take some time, be patient, maybe go grab lunch 🥪
+
+When quantifying is finished a directory titled "salmon_output" will be created
+with a "quant.sf" file per sample. These files contain the quantified abundance
+that will be analyzed next. You may now safely exit out of the command prompt by
+pressing `CTRL-d` twice.
+
+# Data analysis
+
+This pipeline is based off the
+[this excellent vignette](http://bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html)
+on the subject written by the author of the analysis packages we will use.
+
+## Prepare your sample table
+
+Download
+[this example sample file](https://drexel0-my.sharepoint.com/:x:/g/personal/sk673_drexel_edu/Ec8ozcWxZnVMpPU5F6Mo_z0BC9ZsIOoIZbqVy7iTpTYMSg?e=F4O02f)
+and edit with the relevant details about your samples you received from GeneWiz.
+
+The data should look like this:
+
+| sample.id  | condition | RIN | DV200 |
+| ---------- | --------- | --- | ----- |
+| veh1       | vehicle   | 8.7 | 90.5  |
+| treatment1 | treatment | 9.2 | 92.4  |
+| …          | …         | …   | …     |
+
+Save the file as a .csv (CSV UTF-8), this is the fifth option down in the
+save-as dialog in Excel. The filename should be `samples.csv`
+
+## Login to RStudio
+
+We will use the RStudio interface installed on our local server at this
+[address](http://10.18.160.45:8787/), use the same credentials you used
+[here](#perform-quantification-against-the-transcriptome)
+
+To get acclimated with RStudio, please consult
+[this tutorial](https://www.datacamp.com/tutorial/r-studio-tutorial).
+
+## Start a new project in your project directory
+
+- Click "File -> New Project"
+
+![](./images/new_project.png)
+
+- Choose "Existing Directory"
+
+![](./images/existing_directory.png)
+
+- Browse and select the `MYPROJECT` directory you created
+  [earlier](#prepare-your-working-environment)
+
+- Open a new R Script file by clicking "File -> New File -> R Script"
+
+![](./images/r_script.png)
+
+- Save you file and give it a name, I will use **demo.R** for this tutorial.
+
+## Upload your sample table
+
+- Click the files tab in the bottom right panel of the interface.
+
+- Now click the "Upload" button, it is a gold upward pointed arrow.
+
+![](./images/upload.png)
+
+- Click the "Browse..." button under "File to upload", this is the second middle
+  button.
+
+![](./images/browse.png)
+
+- Select your **samples.csv** file
+
+## Read in quantified abundance files
+
+We will use the Bioconductor
+[tximport](https://bioconductor.org/packages/release/bioc/html/tximport.html)
+package to read in our quantified abundance tables using the **samples.csv**
+file as a guide.
+
+In your R script file add the following code:
+
+```r
+# Load Libraries
+library(here)
+library(rio)
+library(CustomRFuncs) # install using devtools::install_github("fbearoff/CustomRFuncs")
+library(DESeq2)
+library(data.table)
+library(readr)
+library(tximport)
+
+here::i_am("demo.R") ## THIS MUST MATCH THE FILENAME 
+
+## What species?
+## "rnorvegicus", "mmusculus", "hsapiens"
+species <- "hsapiens"
+
+# TxImport
+samples <-
+  import(here("samples.csv"), header = TRUE)
+rownames(samples) <- samples$sample.id
+samples$mapped_percent <-
+  import(here("salmon_output", "mapped_percent.txt"))[, 2]
+
+files <- here("salmon_output", "quants", samples$sample.id, "quant.sf")
+names(files) <- samples$sample.id
+all(file.exists(files))
+tx2gene <- as.data.table(getTx2gene(species))
+txi <- tximport(files, type = "salmon", tx2gene = tx2gene[, 1:2])
+txi_abund <- as.data.frame(txi$abundance)
+gene_synonym <- unique(tx2gene[, -1])
+txi_abund <- merge(txi_abund,
+  gene_synonym,
+  by.x = "row.names",
+  by.y = "gene_id"
+)
+txi_abund <- dplyr::rename(txi_abund, gene_id = Row.names)
+```
+
+Run the above code by highlighting it and pressing `CTRL-ENTER`. This code first
+imports our sample data and condition table and then maps sample names to the
+appropriate files. It generates a `tx2gene` object which maps the transcripts we
+quantified to their gene ID, and pulls in other relevant metadata including gene
+name, genomic location, and description. Finally, a complete gene abundance
+object named `txi_abundance` is generated.
+
+We will now utilize
+[DESeq2](https://bioconductor.org/packages/release/bioc/html/DESeq2.html) to
+model our experimental data with the following code.
+
+```r
+# DESeq2
+rownames(samples) <- colnames(txi$counts)
+dds <- DESeqDataSetFromTximport(txi,
+  colData = samples,
+  design = ~condition
+)
+dds <- DESeq(dds)
+```
+
+We have created a DESeqDataSet object called `dds` which contains all our
+samples modeled by the "condition" factor we specified in **samples.csv**. This
+will be the basis for downstream analysis. More complex experimental designs
+will alter the "design" formula, consult
+[this vignette](http://bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html)
+for more information.
+
+## QC
+
+We will now generate a 2D PCA plot with the following code:
+
+> **_NOTE:_** `CustomRFuncs` is an R package I have written containing functions
+> wrapping generalized analysis tasks. These functions are opinionated and not
+> designed for tweaking, you can access the underlying source code by simply
+> typing the functions name in the R console. e.g. `plotPCA`
+
+```r
+CustomRFuncs::plotPCA()
+```
+
+![](./images/pca.png)
+
+You should see a PCA plot pop up in the "Plots" tab in the lower right of the
+RStudio interface that resembles the above figure. If you would like to save the
+image click the "export" button.
+
+![](./images/export_image.png)
+
+## Differential expression analysis
+
+We will now start comparing different conditions in our experiment. I am using
+example data from the [α-syn project](https://pubmed.ncbi.nlm.nih.gov/36571978/)
+, so we will compare the monomer and oligomer α-syn treatments.
+
+We can generate a comparison table using the following code:
+
+```r
+comp <- CustomRFuncs::compDESeq2("10ug_ml_ASM", "10ug_ml_ASPFF")
+```
+
+We can access the table by typing `comp` into the console or clicking its name
+in the "Environment" tab in the upper right of the RSudio interface.
+
+![](./images/view_table.png)
+
+This comparison results table can be saved by running the following code:
+
+```r
+export(comp, "comp.csv")
+```
+
+If you want to download any file to your personal computer, click the checkbox
+next to its name in the "Files" tab, and then click "More -> Export..."
+
+![](./images/download_file.png)
+
+Typical exploratory analysis figures we can make includes an MA plot that shows
+mean expression against fold change:
+
+```r
+plotMA("10ug_ml_ASM", "10ug_ml_ASPFF")
+```
+
+![](./images/MA.png)
+
+Clustered heatmap of top differentially expressed genes:
+
+```r
+clusteredHeatmap("10ug_ml_ASM", "10ug_ml_ASPFF")
+```
+
+![](./images/heatmap.png)
+
+Plot a particular gene of interest:
+
+```r
+plotGene("IL1B")
+```
+
+![](./images/plot_gene.png)
+
+# Conclusion
+
+I have shown you the basics of performing a basic differential expression
+analysis of RNAseq data. This is only scratching the surface of what is
+possible, more advanced analyses may include GO enrichment, pathway analysis,
+and cell-signature analysis. I encourage you to thoroughly read
+[the DESeq2 vignette](http://bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html)
+and play around with R to get the most out of your data.
