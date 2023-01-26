@@ -3,9 +3,6 @@ title: Frank's RNAseq Analysis Pipeline
 author: Frank Bearoff
 date: 01/27/2023
 toc-title: Contents
-project:
-  type: website
-  output-dir: docs
 ---
 
 <!--toc:start-->
@@ -161,6 +158,8 @@ The data should look like this:
 
 Save the file as a .csv (CSV UTF-8), this is the fifth option down in the
 save-as dialog in Excel. The filename should be `samples.csv`
+
+![](./images/save_samples.png)
 
 ## Login to RStudio
 
