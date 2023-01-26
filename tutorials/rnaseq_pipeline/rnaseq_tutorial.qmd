@@ -3,6 +3,9 @@ title: Frank's RNAseq Analysis Pipeline
 author: Frank Bearoff
 date: 01/27/2023
 toc-title: Contents
+format: 
+  html:
+    theme: darkly
 ---
 
 <!--toc:start-->
