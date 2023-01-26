@@ -141,7 +141,7 @@ pressing `CTRL-d` twice.
 
 # Data analysis
 
-This pipeline is based off the
+This pipeline is based off
 [this excellent vignette](http://bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html)
 on the subject written by the author of the analysis packages we will use.
 
@@ -325,7 +325,7 @@ export(comp, "comp.csv")
 ```
 
 If you want to download any file to your personal computer, click the checkbox
-next to its name in the "Files" tab, and then click "More -> Export..."
+next to its name in the "Files" tab, and then click "More -> Export…"
 
 ![](./images/download_file.png)
 
