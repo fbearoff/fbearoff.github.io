@@ -1,9 +1,9 @@
 ---
-title: Frank's RNAseq Analysis Pipeline 
+title: Frank's RNAseq Analysis Pipeline
 author: Frank Bearoff
-date: 01/27/2023
+date: 2023-04-28
 toc-title: Contents
-format: 
+format:
   html:
     theme: darkly
 ---
@@ -16,9 +16,7 @@ format:
   - [Download the genome and transcriptome for your organism of interest](#download-the-genome-and-transcriptome-for-your-organism-of-interest)
     - [Genome](#genome)
     - [Transcriptome](#transcriptome)
-  - [Prepare the index](#prepare-the-index)
-  - [Edit your quantifying script](#edit-your-quantifying-script)
-  - [Quantify the RNAseq data against your prepared index](#quantify-the-rnaseq-data-against-your-prepared-index)
+  - [Index and Quantify the RNAseq Data](#index-and-quantify-the-rnaseq-data)
 - [Data analysis](#data-analysis)
   - [Prepare your sample table](#prepare-your-sample-table)
   - [Login to RStudio](#login-to-rstudio)
@@ -39,14 +37,17 @@ been made about the structure of the data and the experimental design as a
 starting point for your analysis.
 
 I will assume you have sequenced your samples using
-[GENEWIZ](https://www.genewiz.com/) and your data has been transferred to our
-server. You will have a data structure that looks like the following:
+[GENEWIZ](https://www.genewiz.com/) and your data has either been downloaded via
+their
+[instuctions](https://3478602.fs1.hubspotusercontent-na1.net/hubfs/3478602/13012-M%26G%200222%20sFTP%20Guide-3.pdf)
+or you have a physical hard drive containing the data in your possession. You
+will have a data structure that looks like the following:
 
-- Project Name
-  - Project ID
-    - fastq_00
-      - sampleID_R1_001.fastq.gz
-      - sampleID_R2_001.fastq.gz
+- Project_ID
+  - fastq_00
+    - sampleID_R1_001.fastq.gz
+    - sampleID_R2_001.fastq.gz
+    - ...
 
 # Perform quantification against the transcriptome
 
@@ -56,17 +57,15 @@ transcriptome for our organism of interest using
 
 > _**NOTE:**_ Variables you will need to change are in ALL CAPS
 
-Access the server via `ssh YOURUSERNAME@10.18.160.45`
+Open a BASH terminal session using whatever means your OS provides
 
-> **_NOTE:_** You will need to be _plugged into_ the network to access the
-> server
+> _**NOTE:**_ You will need to
+> [install WSL](https://learn.microsoft.com/en-us/windows/wsl/install) if using
+> Windows.
 
-Enter a TMUX session by typing `tmux`
-
-> **_NOTE:_** You can exit TMUX at any point without losing your session by
-> typing `CTRL-b d`
-
-> **_NOTE:_** Re-enter your TMUX session by typing `tmux a`
+Install Salmon using the
+[provided instructions](https://salmon.readthedocs.io/en/latest/building.html#binary-releases)
+and make sure it is available in your `$PATH`.
 
 ## Prepare your working environment
 
@@ -78,11 +77,56 @@ Make a directory for your project `mkdir MYPROJECT`
 
 Change into that directory `cd MYPROJECT`
 
-Copy the RNAseq template scripts to your current directory
-`cp /srv/data/scripts/rnaseq/* .`
+Copy the following code into a new file named `salmon_script.sh` in the
+`MYPROJECT` directory. Replace `YOUR_PROJECT_ID` where denoted below with your
+specific values.
 
-> **_NOTE:_** There is a period at the end of this command, it denotes your
-> current working directory
+> **_EXAMPLE:_** `read_files="./30-689021056/00_fastq"`
+
+> **_NOTE:_** The above assumes you have placed your read files in the current
+> directory, the location you specify has to be the location of the directory
+> containing the .fastq files.
+
+```sh
+#!/bin/bash
+
+##EDIT ME
+read_files="./YOUR_PROJECT_ID/00_fastq"
+##EDIT ME
+
+#supply from ensembl
+genome=*.primary_assembly.fa.gz
+transcriptome=*.cdna.all.fa.gz
+
+##LEAVE ALONE
+threads="$(grep -c ^processor /proc/cpuinfo)"
+parentdir="$(dirname "$genome")"
+
+grep "^>" <(gunzip -c "$genome") | cut -d " " -f 1 >"$parentdir"/decoys.txt
+sed -i.bak -e 's/>//g' "$parentdir"/decoys.txt
+
+cat "$transcriptome" "$genome" >"$parentdir"/gentrome.fa.gz
+
+salmon index -t "$parentdir"/gentrome.fa.gz -d "$parentdir"/decoys.txt -p "$threads" -i "$parentdir"/salmon_index
+
+#quantify transcripts against index
+destination_directory="./salmon_output"
+index="./salmon_index"
+for sample in "$read_files"/*_R1_001.fastq.gz; do
+	base_name="${sample##*/}"
+	echo "Processing sample ${base_name%%_R1_001*}"
+	salmon quant \
+		-i "$index" \
+		--gcBias \
+		-l A \
+		-1 "${sample}" \
+		-2 "${sample%%_R1*}_R2_001.fastq.gz" \
+		-o "$destination_directory"/quants/"${base_name%%_R1*}"
+	mapped=$(grep "percent" "$destination_directory"/quants/"${base_name%%_R1*}"/aux_info/meta_info.json | cut -d : -f 2 | cut -d , -f 1)
+	echo "${base_name%%_R1*}" "$mapped" >>"$destination_directory"/mapped_percent.txt
+done
+##LEAVE ALONE
+```
 
 ## Download the genome and transcriptome for your organism of interest
 
@@ -92,52 +136,29 @@ Retrieve these files from
 ### Genome
 
 - Find your organism and click the first "FASTA" link for "DNA"
-- Find the file named **"\*.primary.assembly.fa.gz"**
-- Right click, copy the link, and issue the following command it to download to
-  the server `wget YOUR_DNA_LINK`
-
-> **_NOTE:_** You can paste in a terminal by right clicking
+- Find the file named **"\*.primary.assembly.fa.gz"** and download it to your
+  working directory.
 
 ### Transcriptome
 
 - Find your organism and click the second "FASTA" link for "cDNA"
-- Find the file named **"\*.cdna.all.fa.gz"**
-- Right click, copy the link, and issue the following command to download to the
-  server `wget YOUR_TRANSCRIPTOME_LINK`
+- Find the file named **"\*.cdna.all.fa.gz"** and download it to your working
+  directory.
 
 ![](./images/ensembl.png)
 
-## Prepare the index
-
-Issue the following command to make the index files `./prepare_index.sh`
-
-> **_NOTE:_** This will take some time, be patient, maybe stretch or grab a
-> coffee ☕
-
-## Edit your quantifying script
-
-Edit your script file to include your RNAseq read files `nano salmon_script.sh`
-
-Replace `YOUR_PROJECT_NAME/YOUR_PROJECT_ID` on line 3 with your specific values
-
-> **_EXAMPLE:_**
-> `read_files="$HOME/data/rnaseq/rnaseq_run_1/30-689021056/00_fastq"`
-
-> **_NOTE:_** Do not add a trailing slash to the directory name.
-
-Exit nano with `CTRL-X`, save your changes by hitting `y`
-
-## Quantify the RNAseq data against your prepared index
+## Index and Quantify the RNAseq Data
 
 Run the quantifying script by issuing the following command:
 `./salmon_script.sh`
 
-> **_NOTE:_** This will take some time, be patient, maybe go grab lunch 🥪
+> **_NOTE:_** This will take some time, be patient, maybe stretch or grab a
+> coffee ☕ or have lunch 🥪
 
 When quantifying is finished a directory titled "salmon_output" will be created
 with a "quant.sf" file per sample. These files contain the quantified abundance
 that will be analyzed next. You may now safely exit out of the command prompt by
-pressing `CTRL-d` twice.
+pressing `CTRL-d`.
 
 # Data analysis
 
@@ -226,7 +247,7 @@ library(data.table)
 library(readr)
 library(tximport)
 
-here::i_am("demo.R") ## THIS MUST MATCH THE FILENAME 
+here::i_am("demo.R") ## THIS MUST MATCH THE FILENAME
 
 ## What species?
 ## "rnorvegicus", "mmusculus", "hsapiens"
