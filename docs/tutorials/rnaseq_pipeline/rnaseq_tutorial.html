@@ -2,12 +2,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.2.313">
+<meta name="generator" content="quarto-1.3.340">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Frank Bearoff">
-<meta name="dcterms.date" content="2023-01-27">
+<meta name="dcterms.date" content="2023-05-02">
 
 <title>Frank’s RNAseq Analysis Pipeline</title>
 <style>
@@ -19,9 +19,10 @@ div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
 ul.task-list{list-style: none;}
 ul.task-list li input[type="checkbox"] {
   width: 0.8em;
-  margin: 0 0.8em 0.2em -1.6em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
 pre > code.sourceCode { white-space: pre; position: relative; }
 pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
@@ -48,43 +49,13 @@ pre.numberSource code > span > a:first-child::before
     -khtml-user-select: none; -moz-user-select: none;
     -ms-user-select: none; user-select: none;
     padding: 0 4px; width: 4em;
-    color: #aaaaaa;
   }
-pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
 div.sourceCode
   {   }
 @media screen {
 pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
-code span.al { color: #ff0000; font-weight: bold; } /* Alert */
-code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
-code span.at { color: #7d9029; } /* Attribute */
-code span.bn { color: #40a070; } /* BaseN */
-code span.bu { color: #008000; } /* BuiltIn */
-code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
-code span.ch { color: #4070a0; } /* Char */
-code span.cn { color: #880000; } /* Constant */
-code span.co { color: #60a0b0; font-style: italic; } /* Comment */
-code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
-code span.do { color: #ba2121; font-style: italic; } /* Documentation */
-code span.dt { color: #902000; } /* DataType */
-code span.dv { color: #40a070; } /* DecVal */
-code span.er { color: #ff0000; font-weight: bold; } /* Error */
-code span.ex { } /* Extension */
-code span.fl { color: #40a070; } /* Float */
-code span.fu { color: #06287e; } /* Function */
-code span.im { color: #008000; font-weight: bold; } /* Import */
-code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
-code span.kw { color: #007020; font-weight: bold; } /* Keyword */
-code span.op { color: #666666; } /* Operator */
-code span.ot { color: #007020; } /* Other */
-code span.pp { color: #bc7a00; } /* Preprocessor */
-code span.sc { color: #4070a0; } /* SpecialChar */
-code span.ss { color: #bb6688; } /* SpecialString */
-code span.st { color: #4070a0; } /* String */
-code span.va { color: #19177c; } /* Variable */
-code span.vs { color: #4070a0; } /* VerbatimString */
-code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
 </style>
 
 
@@ -127,7 +98,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">January 27, 2023</p>
+      <p class="date">May 2, 2023</p>
     </div>
   </div>
   
@@ -148,9 +119,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li><a href="#genome">Genome</a></li>
 <li><a href="#transcriptome">Transcriptome</a></li>
 </ul></li>
-<li><a href="#prepare-the-index">Prepare the index</a></li>
-<li><a href="#edit-your-quantifying-script">Edit your quantifying script</a></li>
-<li><a href="#quantify-the-rnaseq-data-against-your-prepared-index">Quantify the RNAseq data against your prepared index</a></li>
+<li><a href="#index-and-quantify-the-rnaseq-data">Index and Quantify the RNAseq Data</a></li>
 </ul></li>
 <li><a href="#data-analysis">Data analysis</a>
 <ul>
@@ -168,17 +137,15 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <section id="introduction" class="level1">
 <h1>Introduction</h1>
 <p>This brief tutorial will show you the general steps I use when analyzing RNAseq data. A majority of this pipeline has been streamlined and many assumptions have been made about the structure of the data and the experimental design as a starting point for your analysis.</p>
-<p>I will assume you have sequenced your samples using <a href="https://www.genewiz.com/">GENEWIZ</a> and your data has been transferred to our server. You will have a data structure that looks like the following:</p>
+<p>I will assume you have sequenced your samples using <a href="https://www.genewiz.com/">GENEWIZ</a> and your data has either been downloaded via their <a href="https://3478602.fs1.hubspotusercontent-na1.net/hubfs/3478602/13012-M%26G%200222%20sFTP%20Guide-3.pdf">instuctions</a> or you have a physical hard drive containing the data in your possession. You will have a data structure that looks like the following:</p>
 <ul>
-<li>Project Name
-<ul>
-<li>Project ID
+<li>Project_ID
 <ul>
 <li>fastq_00
 <ul>
 <li>sampleID_R1_001.fastq.gz</li>
 <li>sampleID_R2_001.fastq.gz</li>
-</ul></li>
+<li>…</li>
 </ul></li>
 </ul></li>
 </ul>
@@ -189,27 +156,63 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <blockquote class="blockquote">
 <p><em><strong>NOTE:</strong></em> Variables you will need to change are in ALL CAPS</p>
 </blockquote>
-<p>Access the server via <code>ssh YOURUSERNAME@10.18.160.45</code></p>
+<p>Open a BASH terminal session using whatever means your OS provides</p>
 <blockquote class="blockquote">
-<p><strong><em>NOTE:</em></strong> You will need to be <em>plugged into</em> the network to access the server</p>
+<p><em><strong>NOTE:</strong></em> You will need to <a href="https://learn.microsoft.com/en-us/windows/wsl/install">install WSL</a> if using Windows.</p>
 </blockquote>
-<p>Enter a TMUX session by typing <code>tmux</code></p>
-<blockquote class="blockquote">
-<p><strong><em>NOTE:</em></strong> You can exit TMUX at any point without losing your session by typing <code>CTRL-b d</code></p>
-</blockquote>
-<blockquote class="blockquote">
-<p><strong><em>NOTE:</em></strong> Re-enter your TMUX session by typing <code>tmux a</code></p>
-</blockquote>
+<p>Install Salmon using the <a href="https://salmon.readthedocs.io/en/latest/building.html#binary-releases">provided instructions</a> and make sure it is available in your <code>$PATH</code>.</p>
 <section id="prepare-your-working-environment" class="level2">
 <h2 class="anchored" data-anchor-id="prepare-your-working-environment">Prepare your working environment</h2>
 <p>Make a directory for you projects <code>mkdir PROJECTS</code></p>
 <p>Change into that directory <code>cd PROJECTS</code></p>
 <p>Make a directory for your project <code>mkdir MYPROJECT</code></p>
 <p>Change into that directory <code>cd MYPROJECT</code></p>
-<p>Copy the RNAseq template scripts to your current directory <code>cp /srv/data/scripts/rnaseq/* .</code></p>
+<p>Copy the following code into a new file named <code>salmon_script.sh</code> in the <code>MYPROJECT</code> directory. Replace <code>YOUR_PROJECT_ID</code> where denoted below with your specific values. You may also download the file <a href="./files/salmon_script.sh">here</a>.</p>
 <blockquote class="blockquote">
-<p><strong><em>NOTE:</em></strong> There is a period at the end of this command, it denotes your current working directory</p>
+<p><strong><em>EXAMPLE:</em></strong> <code>read_files="./30-689021056/00_fastq"</code></p>
 </blockquote>
+<blockquote class="blockquote">
+<p><strong><em>NOTE:</em></strong> The above assumes you have placed your read files in the current directory, the location you specify has to be the location of the directory containing the .fastq files.</p>
+</blockquote>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">#!/bin/bash</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co">##EDIT ME</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="va">read_files</span><span class="op">=</span><span class="st">"location/of/your/rnaseq/reads/YOUR_PROJECT_NAME/YOUR_PROJECT_ID/00_fastq"</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co">#EXAMPLE read_files="$HOME/data/rnaseq/YOUR_PROJECT_NAME/YOUR_PROJECT_ID/00_fastq"</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co">##EDIT ME</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co">#supply these files from ensembl, place in the directory where this script is located</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="va">genome</span><span class="op">=</span><span class="st">"*.primary_assembly.fa.gz"</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="va">transcriptome</span><span class="op">=</span><span class="st">"*.cdna.all.fa.gz"</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="co">##LEAVE ALONE</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="va">threads</span><span class="op">=</span><span class="st">"</span><span class="va">$(</span><span class="fu">grep</span> <span class="at">-c</span> ^processor /proc/cpuinfo<span class="va">)</span><span class="st">"</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="va">parentdir</span><span class="op">=</span><span class="st">"</span><span class="va">$(</span><span class="fu">dirname</span> <span class="st">"</span><span class="va">$genome</span><span class="st">"</span><span class="va">)</span><span class="st">"</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="fu">grep</span> <span class="st">"^&gt;"</span> <span class="op">&lt;(</span><span class="fu">gunzip</span> <span class="at">-c</span> <span class="st">"</span><span class="va">$genome</span><span class="st">"</span><span class="op">)</span> <span class="kw">|</span> <span class="fu">cut</span> <span class="at">-d</span> <span class="st">" "</span> <span class="at">-f</span> 1 <span class="op">&gt;</span><span class="st">"</span><span class="va">$parentdir</span><span class="st">"</span>/decoys.txt</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="fu">sed</span> <span class="at">-i.bak</span> <span class="at">-e</span> <span class="st">'s/&gt;//g'</span> <span class="st">"</span><span class="va">$parentdir</span><span class="st">"</span>/decoys.txt</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> <span class="st">"</span><span class="va">$transcriptome</span><span class="st">"</span> <span class="st">"</span><span class="va">$genome</span><span class="st">"</span> <span class="op">&gt;</span><span class="st">"</span><span class="va">$parentdir</span><span class="st">"</span>/gentrome.fa.gz</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a><span class="ex">salmon</span> index <span class="at">-t</span> <span class="st">"</span><span class="va">$parentdir</span><span class="st">"</span>/gentrome.fa.gz <span class="at">-d</span> <span class="st">"</span><span class="va">$parentdir</span><span class="st">"</span>/decoys.txt <span class="at">-p</span> <span class="st">"</span><span class="va">$threads</span><span class="st">"</span> <span class="at">-i</span> <span class="st">"</span><span class="va">$parentdir</span><span class="st">"</span>/salmon_index</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a><span class="co">#quantify transcripts against index</span></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a><span class="va">destination_directory</span><span class="op">=</span><span class="st">"./salmon_output"</span></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a><span class="va">index</span><span class="op">=</span><span class="st">"./salmon_index"</span></span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> sample <span class="kw">in</span> <span class="st">"</span><span class="va">$read_files</span><span class="st">"</span>/<span class="pp">*</span>_R1_001.fastq.gz<span class="kw">;</span> <span class="cf">do</span></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>    <span class="va">base_name</span><span class="op">=</span><span class="st">"</span><span class="va">${sample</span><span class="op">##</span><span class="pp">*</span>/<span class="va">}</span><span class="st">"</span></span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>    <span class="bu">echo</span> <span class="st">"Processing sample </span><span class="va">${base_name</span><span class="op">%%</span>_R1_001<span class="pp">*</span><span class="va">}</span><span class="st">"</span></span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>    <span class="ex">salmon</span> quant <span class="dt">\</span></span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>        <span class="at">-i</span> <span class="st">"</span><span class="va">$index</span><span class="st">"</span> <span class="dt">\</span></span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>        <span class="at">--gcBias</span> <span class="dt">\</span></span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>        <span class="at">-l</span> A <span class="dt">\</span></span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>        <span class="at">-1</span> <span class="st">"</span><span class="va">${sample}</span><span class="st">"</span> <span class="dt">\</span></span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>        <span class="at">-2</span> <span class="st">"</span><span class="va">${sample</span><span class="op">%%</span>_R1<span class="pp">*</span><span class="va">}</span><span class="st">_R2_001.fastq.gz"</span> <span class="dt">\</span></span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>        <span class="at">-o</span> <span class="st">"</span><span class="va">$destination_directory</span><span class="st">"</span>/quants/<span class="st">"</span><span class="va">${base_name</span><span class="op">%%</span>_R1<span class="pp">*</span><span class="va">}</span><span class="st">"</span></span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>    <span class="va">mapped</span><span class="op">=</span><span class="va">$(</span><span class="fu">grep</span> <span class="st">"percent"</span> <span class="st">"</span><span class="va">$destination_directory</span><span class="st">"</span>/quants/<span class="st">"</span><span class="va">${base_name</span><span class="op">%%</span>_R1<span class="pp">*</span><span class="va">}</span><span class="st">"</span>/aux_info/meta_info.json <span class="kw">|</span> <span class="fu">cut</span> <span class="at">-d</span> : <span class="at">-f</span> 2 <span class="kw">|</span> <span class="fu">cut</span> <span class="at">-d</span> , <span class="at">-f</span> 1<span class="va">)</span></span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a>    <span class="bu">echo</span> <span class="st">"</span><span class="va">${base_name</span><span class="op">%%</span>_R1<span class="pp">*</span><span class="va">}</span><span class="st">"</span> <span class="st">"</span><span class="va">$mapped</span><span class="st">"</span> <span class="op">&gt;&gt;</span><span class="st">"</span><span class="va">$destination_directory</span><span class="st">"</span>/mapped_percent.txt</span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a><span class="cf">done</span></span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a><span class="co">##LEAVE ALONE</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
 <section id="download-the-genome-and-transcriptome-for-your-organism-of-interest" class="level2">
 <h2 class="anchored" data-anchor-id="download-the-genome-and-transcriptome-for-your-organism-of-interest">Download the genome and transcriptome for your organism of interest</h2>
@@ -218,49 +221,25 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <h3 class="anchored" data-anchor-id="genome">Genome</h3>
 <ul>
 <li>Find your organism and click the first “FASTA” link for “DNA”</li>
-<li>Find the file named <strong>“*.primary.assembly.fa.gz”</strong></li>
-<li>Right click, copy the link, and issue the following command it to download to the server <code>wget YOUR_DNA_LINK</code></li>
+<li>Find the file named <strong>“*.primary.assembly.fa.gz”</strong> and download it to your working directory.</li>
 </ul>
-<blockquote class="blockquote">
-<p><strong><em>NOTE:</em></strong> You can paste in a terminal by right clicking</p>
-</blockquote>
 </section>
 <section id="transcriptome" class="level3">
 <h3 class="anchored" data-anchor-id="transcriptome">Transcriptome</h3>
 <ul>
 <li>Find your organism and click the second “FASTA” link for “cDNA”</li>
-<li>Find the file named <strong>“*.cdna.all.fa.gz”</strong></li>
-<li>Right click, copy the link, and issue the following command to download to the server <code>wget YOUR_TRANSCRIPTOME_LINK</code></li>
+<li>Find the file named <strong>“*.cdna.all.fa.gz”</strong> and download it to your working directory.</li>
 </ul>
 <p><img src="./images/ensembl.png" class="img-fluid"></p>
 </section>
 </section>
-<section id="prepare-the-index" class="level2">
-<h2 class="anchored" data-anchor-id="prepare-the-index">Prepare the index</h2>
-<p>Issue the following command to make the index files <code>./prepare_index.sh</code></p>
+<section id="index-and-quantify-the-rnaseq-data" class="level2">
+<h2 class="anchored" data-anchor-id="index-and-quantify-the-rnaseq-data">Index and Quantify the RNAseq Data</h2>
+<p>Run the quantifying script by issuing the following command: <code>bash salmon_script.sh</code></p>
 <blockquote class="blockquote">
-<p><strong><em>NOTE:</em></strong> This will take some time, be patient, maybe stretch or grab a coffee ☕</p>
+<p><strong><em>NOTE:</em></strong> This will take some time, be patient, maybe stretch, grab a coffee ☕, or have lunch 🥪</p>
 </blockquote>
-</section>
-<section id="edit-your-quantifying-script" class="level2">
-<h2 class="anchored" data-anchor-id="edit-your-quantifying-script">Edit your quantifying script</h2>
-<p>Edit your script file to include your RNAseq read files <code>nano salmon_script.sh</code></p>
-<p>Replace <code>YOUR_PROJECT_NAME/YOUR_PROJECT_ID</code> on line 3 with your specific values</p>
-<blockquote class="blockquote">
-<p><strong><em>EXAMPLE:</em></strong> <code>read_files="$HOME/data/rnaseq/rnaseq_run_1/30-689021056/00_fastq"</code></p>
-</blockquote>
-<blockquote class="blockquote">
-<p><strong><em>NOTE:</em></strong> Do not add a trailing slash to the directory name.</p>
-</blockquote>
-<p>Exit nano with <code>CTRL-X</code>, save your changes by hitting <code>y</code></p>
-</section>
-<section id="quantify-the-rnaseq-data-against-your-prepared-index" class="level2">
-<h2 class="anchored" data-anchor-id="quantify-the-rnaseq-data-against-your-prepared-index">Quantify the RNAseq data against your prepared index</h2>
-<p>Run the quantifying script by issuing the following command: <code>./salmon_script.sh</code></p>
-<blockquote class="blockquote">
-<p><strong><em>NOTE:</em></strong> This will take some time, be patient, maybe go grab lunch 🥪</p>
-</blockquote>
-<p>When quantifying is finished a directory titled “salmon_output” will be created with a “quant.sf” file per sample. These files contain the quantified abundance that will be analyzed next. You may now safely exit out of the command prompt by pressing <code>CTRL-d</code> twice.</p>
+<p>When quantifying is finished a directory titled “salmon_output” will be created with a “quant.sf” file per sample. These files contain the quantified abundance that will be analyzed next. You may now safely exit out of the command prompt by pressing <code>CTRL-d</code>.</p>
 </section>
 </section>
 <section id="data-analysis" class="level1">
@@ -268,7 +247,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <p>This pipeline is based off <a href="http://bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html">this excellent vignette</a> on the subject written by the author of the analysis packages we will use.</p>
 <section id="prepare-your-sample-table" class="level2">
 <h2 class="anchored" data-anchor-id="prepare-your-sample-table">Prepare your sample table</h2>
-<p>Download <a href="https://drexel0-my.sharepoint.com/:x:/g/personal/sk673_drexel_edu/Ec8ozcWxZnVMpPU5F6Mo_z0BC9ZsIOoIZbqVy7iTpTYMSg?e=F4O02f">this example sample file</a> and edit with the relevant details about your samples you received from GeneWiz.</p>
+<p>Download <a href="./files/samples.csv">this example sample file</a> and edit with the relevant details about your samples you received from GeneWiz (or other sequencing company).</p>
 <p>The data should look like this:</p>
 <table class="table">
 <thead>
@@ -300,12 +279,12 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </tr>
 </tbody>
 </table>
-<p>Save the file as a .csv (CSV UTF-8), this is the fifth option down in the save-as dialog in Excel. The filename should be <code>samples.csv</code></p>
+<p>Make sure to save the file as a .csv (CSV UTF-8), this is the fifth option down in the save-as dialog in Excel. The filename should be <code>samples.csv</code></p>
 <p><img src="./images/save_samples.png" class="img-fluid"></p>
 </section>
 <section id="login-to-rstudio" class="level2">
 <h2 class="anchored" data-anchor-id="login-to-rstudio">Login to RStudio</h2>
-<p>We will use the RStudio interface installed on our local server at this <a href="http://10.18.160.45:8787/">address</a>, use the same credentials you used <a href="#perform-quantification-against-the-transcriptome">here</a></p>
+<p>We will use RStudio to perform the rest of the analysis, follow <a href="https://posit.co/download/rstudio-desktop/">these instructions</a> for installation.</p>
 <p>To get acclimated with RStudio, please consult <a href="https://www.datacamp.com/tutorial/r-studio-tutorial">this tutorial</a>.</p>
 </section>
 <section id="start-a-new-project-in-your-project-directory" class="level2">
@@ -346,50 +325,50 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <h2 class="anchored" data-anchor-id="read-in-quantified-abundance-files">Read in quantified abundance files</h2>
 <p>We will use the Bioconductor <a href="https://bioconductor.org/packages/release/bioc/html/tximport.html">tximport</a> package to read in our quantified abundance tables using the <strong>samples.csv</strong> file as a guide.</p>
 <p>In your R script file add the following code:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load Libraries</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(here)</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(rio)</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(CustomRFuncs) <span class="co"># install using devtools::install_github("fbearoff/CustomRFuncs")</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(DESeq2)</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(data.table)</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(readr)</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tximport)</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>here<span class="sc">::</span><span class="fu">i_am</span>(<span class="st">"demo.R"</span>) <span class="do">## THIS MUST MATCH THE FILENAME </span></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="do">## What species?</span></span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="do">## "rnorvegicus", "mmusculus", "hsapiens"</span></span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>species <span class="ot">&lt;-</span> <span class="st">"hsapiens"</span></span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="co"># TxImport</span></span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>samples <span class="ot">&lt;-</span></span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">import</span>(<span class="fu">here</span>(<span class="st">"samples.csv"</span>), <span class="at">header =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="fu">rownames</span>(samples) <span class="ot">&lt;-</span> samples<span class="sc">$</span>sample.id</span>
-<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>samples<span class="sc">$</span>mapped_percent <span class="ot">&lt;-</span></span>
-<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">import</span>(<span class="fu">here</span>(<span class="st">"salmon_output"</span>, <span class="st">"mapped_percent.txt"</span>))[, <span class="dv">2</span>]</span>
-<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>files <span class="ot">&lt;-</span> <span class="fu">here</span>(<span class="st">"salmon_output"</span>, <span class="st">"quants"</span>, samples<span class="sc">$</span>sample.id, <span class="st">"quant.sf"</span>)</span>
-<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(files) <span class="ot">&lt;-</span> samples<span class="sc">$</span>sample.id</span>
-<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a><span class="fu">all</span>(<span class="fu">file.exists</span>(files))</span>
-<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>tx2gene <span class="ot">&lt;-</span> <span class="fu">as.data.table</span>(<span class="fu">getTx2gene</span>(species))</span>
-<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>txi <span class="ot">&lt;-</span> <span class="fu">tximport</span>(files, <span class="at">type =</span> <span class="st">"salmon"</span>, <span class="at">tx2gene =</span> tx2gene[, <span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>])</span>
-<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>txi_abund <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(txi<span class="sc">$</span>abundance)</span>
-<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>gene_synonym <span class="ot">&lt;-</span> <span class="fu">unique</span>(tx2gene[, <span class="sc">-</span><span class="dv">1</span>])</span>
-<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>txi_abund <span class="ot">&lt;-</span> <span class="fu">merge</span>(txi_abund,</span>
-<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>  gene_synonym,</span>
-<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>  <span class="at">by.x =</span> <span class="st">"row.names"</span>,</span>
-<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>  <span class="at">by.y =</span> <span class="st">"gene_id"</span></span>
-<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>txi_abund <span class="ot">&lt;-</span> dplyr<span class="sc">::</span><span class="fu">rename</span>(txi_abund, <span class="at">gene_id =</span> Row.names)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load Libraries</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(here)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(rio)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(CustomRFuncs) <span class="co"># install using devtools::install_github("fbearoff/CustomRFuncs")</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(DESeq2)</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(data.table)</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(readr)</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tximport)</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>here<span class="sc">::</span><span class="fu">i_am</span>(<span class="st">"demo.R"</span>) <span class="do">## THIS MUST MATCH THE FILENAME</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="do">## What species?</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="do">## "rnorvegicus", "mmusculus", "hsapiens"</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>species <span class="ot">&lt;-</span> <span class="st">"hsapiens"</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="co"># TxImport</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>samples <span class="ot">&lt;-</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">import</span>(<span class="fu">here</span>(<span class="st">"samples.csv"</span>), <span class="at">header =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="fu">rownames</span>(samples) <span class="ot">&lt;-</span> samples<span class="sc">$</span>sample.id</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>samples<span class="sc">$</span>mapped_percent <span class="ot">&lt;-</span></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">import</span>(<span class="fu">here</span>(<span class="st">"salmon_output"</span>, <span class="st">"mapped_percent.txt"</span>))[, <span class="dv">2</span>]</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>files <span class="ot">&lt;-</span> <span class="fu">here</span>(<span class="st">"salmon_output"</span>, <span class="st">"quants"</span>, samples<span class="sc">$</span>sample.id, <span class="st">"quant.sf"</span>)</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(files) <span class="ot">&lt;-</span> samples<span class="sc">$</span>sample.id</span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a><span class="fu">all</span>(<span class="fu">file.exists</span>(files))</span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>tx2gene <span class="ot">&lt;-</span> <span class="fu">as.data.table</span>(<span class="fu">getTx2gene</span>(species))</span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>txi <span class="ot">&lt;-</span> <span class="fu">tximport</span>(files, <span class="at">type =</span> <span class="st">"salmon"</span>, <span class="at">tx2gene =</span> tx2gene[, <span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>])</span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>txi_abund <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(txi<span class="sc">$</span>abundance)</span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>gene_synonym <span class="ot">&lt;-</span> <span class="fu">unique</span>(tx2gene[, <span class="sc">-</span><span class="dv">1</span>])</span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>txi_abund <span class="ot">&lt;-</span> <span class="fu">merge</span>(txi_abund,</span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>  gene_synonym,</span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>  <span class="at">by.x =</span> <span class="st">"row.names"</span>,</span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>  <span class="at">by.y =</span> <span class="st">"gene_id"</span></span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>txi_abund <span class="ot">&lt;-</span> dplyr<span class="sc">::</span><span class="fu">rename</span>(txi_abund, <span class="at">gene_id =</span> Row.names)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>Run the above code by highlighting it and pressing <code>CTRL-ENTER</code>. This code first imports our sample data and condition table and then maps sample names to the appropriate files. It generates a <code>tx2gene</code> object which maps the transcripts we quantified to their gene ID, and pulls in other relevant metadata including gene name, genomic location, and description. Finally, a complete gene abundance object named <code>txi_abundance</code> is generated.</p>
 <p>We will now utilize <a href="https://bioconductor.org/packages/release/bioc/html/DESeq2.html">DESeq2</a> to model our experimental data with the following code.</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># DESeq2</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">rownames</span>(samples) <span class="ot">&lt;-</span> <span class="fu">colnames</span>(txi<span class="sc">$</span>counts)</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>dds <span class="ot">&lt;-</span> <span class="fu">DESeqDataSetFromTximport</span>(txi,</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">colData =</span> samples,</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">design =</span> <span class="sc">~</span>condition</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>dds <span class="ot">&lt;-</span> <span class="fu">DESeq</span>(dds)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># DESeq2</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">rownames</span>(samples) <span class="ot">&lt;-</span> <span class="fu">colnames</span>(txi<span class="sc">$</span>counts)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>dds <span class="ot">&lt;-</span> <span class="fu">DESeqDataSetFromTximport</span>(txi,</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">colData =</span> samples,</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">design =</span> <span class="sc">~</span>condition</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>dds <span class="ot">&lt;-</span> <span class="fu">DESeq</span>(dds)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>We have created a DESeqDataSet object called <code>dds</code> which contains all our samples modeled by the “condition” factor we specified in <strong>samples.csv</strong>. This will be the basis for downstream analysis. More complex experimental designs will alter the “design” formula, consult <a href="http://bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html">this vignette</a> for more information.</p>
 </section>
 <section id="qc" class="level2">
@@ -398,7 +377,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <blockquote class="blockquote">
 <p><strong><em>NOTE:</em></strong> <code>CustomRFuncs</code> is an R package I have written containing functions wrapping generalized analysis tasks. These functions are opinionated and not designed for tweaking, you can access the underlying source code by simply typing the functions name in the R console. e.g.&nbsp;<code>plotPCA</code></p>
 </blockquote>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>CustomRFuncs<span class="sc">::</span><span class="fu">plotPCA</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>CustomRFuncs<span class="sc">::</span><span class="fu">plotPCA</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p><img src="./images/pca.png" class="img-fluid"></p>
 <p>You should see a PCA plot pop up in the “Plots” tab in the lower right of the RStudio interface that resembles the above figure. If you would like to save the image click the “export” button.</p>
 <p><img src="./images/export_image.png" class="img-fluid"></p>
@@ -407,21 +386,21 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <h2 class="anchored" data-anchor-id="differential-expression-analysis">Differential expression analysis</h2>
 <p>We will now start comparing different conditions in our experiment. I am using example data from the <a href="https://pubmed.ncbi.nlm.nih.gov/36571978/">α-syn project</a> , so we will compare the monomer and oligomer α-syn treatments.</p>
 <p>We can generate a comparison table using the following code:</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>comp <span class="ot">&lt;-</span> CustomRFuncs<span class="sc">::</span><span class="fu">compDESeq2</span>(<span class="st">"10ug_ml_ASM"</span>, <span class="st">"10ug_ml_ASPFF"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>comp <span class="ot">&lt;-</span> CustomRFuncs<span class="sc">::</span><span class="fu">compDESeq2</span>(<span class="st">"10ug_ml_ASM"</span>, <span class="st">"10ug_ml_ASPFF"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>We can access the table by typing <code>comp</code> into the console or clicking its name in the “Environment” tab in the upper right of the RSudio interface.</p>
 <p><img src="./images/view_table.png" class="img-fluid"></p>
 <p>This comparison results table can be saved by running the following code:</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">export</span>(comp, <span class="st">"comp.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">export</span>(comp, <span class="st">"comp.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>If you want to download any file to your personal computer, click the checkbox next to its name in the “Files” tab, and then click “More -&gt; Export…”</p>
 <p><img src="./images/download_file.png" class="img-fluid"></p>
 <p>Typical exploratory analysis figures we can make includes an MA plot that shows mean expression against fold change:</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plotMA</span>(<span class="st">"10ug_ml_ASM"</span>, <span class="st">"10ug_ml_ASPFF"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plotMA</span>(<span class="st">"10ug_ml_ASM"</span>, <span class="st">"10ug_ml_ASPFF"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p><img src="./images/MA.png" class="img-fluid"></p>
 <p>Clustered heatmap of top differentially expressed genes:</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">clusteredHeatmap</span>(<span class="st">"10ug_ml_ASM"</span>, <span class="st">"10ug_ml_ASPFF"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">clusteredHeatmap</span>(<span class="st">"10ug_ml_ASM"</span>, <span class="st">"10ug_ml_ASPFF"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p><img src="./images/heatmap.png" class="img-fluid"></p>
 <p>Plot a particular gene of interest:</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plotGene</span>(<span class="st">"IL1B"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plotGene</span>(<span class="st">"IL1B"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p><img src="./images/plot_gene.png" class="img-fluid"></p>
 </section>
 </section>
@@ -459,9 +438,23 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     icon: icon
   };
   anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
   const clipboard = new window.ClipboardJS('.code-copy-button', {
-    target: function(trigger) {
-      return trigger.previousElementSibling;
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
     }
   });
   clipboard.on('success', function(e) {
@@ -526,6 +519,92 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       return note.innerHTML;
     });
   }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
   const findCites = (el) => {
     const parentEl = el.parentElement;
     if (parentEl) {

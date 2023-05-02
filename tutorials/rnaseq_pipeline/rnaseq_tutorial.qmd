@@ -1,7 +1,7 @@
 ---
 title: Frank's RNAseq Analysis Pipeline
 author: Frank Bearoff
-date: 2023-04-28
+date: 2023-05-02
 toc-title: Contents
 format:
   html:
@@ -79,7 +79,7 @@ Change into that directory `cd MYPROJECT`
 
 Copy the following code into a new file named `salmon_script.sh` in the
 `MYPROJECT` directory. Replace `YOUR_PROJECT_ID` where denoted below with your
-specific values.
+specific values. You may also download the file [here](./files/salmon_script.sh).
 
 > **_EXAMPLE:_** `read_files="./30-689021056/00_fastq"`
 
@@ -87,16 +87,17 @@ specific values.
 > directory, the location you specify has to be the location of the directory
 > containing the .fastq files.
 
-```sh
+```bash
 #!/bin/bash
 
 ##EDIT ME
-read_files="./YOUR_PROJECT_ID/00_fastq"
+read_files="location/of/your/rnaseq/reads/YOUR_PROJECT_NAME/YOUR_PROJECT_ID/00_fastq"
+#EXAMPLE read_files="$HOME/data/rnaseq/YOUR_PROJECT_NAME/YOUR_PROJECT_ID/00_fastq"
 ##EDIT ME
 
-#supply from ensembl
-genome=*.primary_assembly.fa.gz
-transcriptome=*.cdna.all.fa.gz
+#supply these files from ensembl, place in the directory where this script is located
+genome="*.primary_assembly.fa.gz"
+transcriptome="*.cdna.all.fa.gz"
 
 ##LEAVE ALONE
 threads="$(grep -c ^processor /proc/cpuinfo)"
@@ -150,10 +151,10 @@ Retrieve these files from
 ## Index and Quantify the RNAseq Data
 
 Run the quantifying script by issuing the following command:
-`./salmon_script.sh`
+`bash salmon_script.sh`
 
-> **_NOTE:_** This will take some time, be patient, maybe stretch or grab a
-> coffee ☕ or have lunch 🥪
+> **_NOTE:_** This will take some time, be patient, maybe stretch, grab a coffee
+> ☕, or have lunch 🥪
 
 When quantifying is finished a directory titled "salmon_output" will be created
 with a "quant.sf" file per sample. These files contain the quantified abundance
@@ -168,9 +169,9 @@ on the subject written by the author of the analysis packages we will use.
 
 ## Prepare your sample table
 
-Download
-[this example sample file](https://drexel0-my.sharepoint.com/:x:/g/personal/sk673_drexel_edu/Ec8ozcWxZnVMpPU5F6Mo_z0BC9ZsIOoIZbqVy7iTpTYMSg?e=F4O02f)
-and edit with the relevant details about your samples you received from GeneWiz.
+Download [this example sample file](./files/samples.csv) and edit with the
+relevant details about your samples you received from GeneWiz (or other
+sequencing company).
 
 The data should look like this:
 
@@ -180,16 +181,16 @@ The data should look like this:
 | treatment1 | treatment | 9.2 | 92.4  |
 | …          | …         | …   | …     |
 
-Save the file as a .csv (CSV UTF-8), this is the fifth option down in the
-save-as dialog in Excel. The filename should be `samples.csv`
+Make sure to save the file as a .csv (CSV UTF-8), this is the fifth option down
+in the save-as dialog in Excel. The filename should be `samples.csv`
 
 ![](./images/save_samples.png)
 
 ## Login to RStudio
 
-We will use the RStudio interface installed on our local server at this
-[address](http://10.18.160.45:8787/), use the same credentials you used
-[here](#perform-quantification-against-the-transcriptome)
+We will use RStudio to perform the rest of the analysis, follow
+[these instructions](https://posit.co/download/rstudio-desktop/) for
+installation.
 
 To get acclimated with RStudio, please consult
 [this tutorial](https://www.datacamp.com/tutorial/r-studio-tutorial).
