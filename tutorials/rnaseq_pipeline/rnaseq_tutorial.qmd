@@ -79,7 +79,8 @@ Change into that directory `cd MYPROJECT`
 
 Copy the following code into a new file named `salmon_script.sh` in the
 `MYPROJECT` directory. Replace `YOUR_PROJECT_ID` where denoted below with your
-specific values. You may also download the file [here](./files/salmon_script.sh).
+specific values. You may also download the file
+[here](./files/salmon_script.sh).
 
 > **_EXAMPLE:_** `read_files="./30-689021056/00_fastq"`
 
@@ -182,7 +183,8 @@ The data should look like this:
 | …          | …         | …   | …     |
 
 Make sure to save the file as a .csv (CSV UTF-8), this is the fifth option down
-in the save-as dialog in Excel. The filename should be `samples.csv`
+in the save-as dialog in Excel. The filename should be `samples.csv` and it
+should be placed in the `MYPROJECT` directory.
 
 ![](./images/save_samples.png)
 
@@ -213,21 +215,6 @@ To get acclimated with RStudio, please consult
 ![](./images/r_script.png)
 
 - Save you file and give it a name, I will use **demo.R** for this tutorial.
-
-## Upload your sample table
-
-- Click the files tab in the bottom right panel of the interface.
-
-- Now click the "Upload" button, it is a gold upward pointed arrow.
-
-![](./images/upload.png)
-
-- Click the "Browse..." button under "File to upload", this is the second middle
-  button.
-
-![](./images/browse.png)
-
-- Select your **samples.csv** file
 
 ## Read in quantified abundance files
 
@@ -347,11 +334,6 @@ This comparison results table can be saved by running the following code:
 ```r
 export(comp, "comp.csv")
 ```
-
-If you want to download any file to your personal computer, click the checkbox
-next to its name in the "Files" tab, and then click "More -> Export…"
-
-![](./images/download_file.png)
 
 Typical exploratory analysis figures we can make includes an MA plot that shows
 mean expression against fold change:

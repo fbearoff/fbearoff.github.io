@@ -279,7 +279,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tr>
 </tbody>
 </table>
-<p>Make sure to save the file as a .csv (CSV UTF-8), this is the fifth option down in the save-as dialog in Excel. The filename should be <code>samples.csv</code></p>
+<p>Make sure to save the file as a .csv (CSV UTF-8), this is the fifth option down in the save-as dialog in Excel. The filename should be <code>samples.csv</code> and it should be placed in the <code>MYPROJECT</code> directory.</p>
 <p><img src="./images/save_samples.png" class="img-fluid"></p>
 </section>
 <section id="login-to-rstudio" class="level2">
@@ -304,21 +304,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p><img src="./images/r_script.png" class="img-fluid"></p>
 <ul>
 <li>Save you file and give it a name, I will use <strong>demo.R</strong> for this tutorial.</li>
-</ul>
-</section>
-<section id="upload-your-sample-table" class="level2">
-<h2 class="anchored" data-anchor-id="upload-your-sample-table">Upload your sample table</h2>
-<ul>
-<li><p>Click the files tab in the bottom right panel of the interface.</p></li>
-<li><p>Now click the “Upload” button, it is a gold upward pointed arrow.</p></li>
-</ul>
-<p><img src="./images/upload.png" class="img-fluid"></p>
-<ul>
-<li>Click the “Browse…” button under “File to upload”, this is the second middle button.</li>
-</ul>
-<p><img src="./images/browse.png" class="img-fluid"></p>
-<ul>
-<li>Select your <strong>samples.csv</strong> file</li>
 </ul>
 </section>
 <section id="read-in-quantified-abundance-files" class="level2">
@@ -391,8 +376,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p><img src="./images/view_table.png" class="img-fluid"></p>
 <p>This comparison results table can be saved by running the following code:</p>
 <div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">export</span>(comp, <span class="st">"comp.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>If you want to download any file to your personal computer, click the checkbox next to its name in the “Files” tab, and then click “More -&gt; Export…”</p>
-<p><img src="./images/download_file.png" class="img-fluid"></p>
 <p>Typical exploratory analysis figures we can make includes an MA plot that shows mean expression against fold change:</p>
 <div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plotMA</span>(<span class="st">"10ug_ml_ASM"</span>, <span class="st">"10ug_ml_ASPFF"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p><img src="./images/MA.png" class="img-fluid"></p>
