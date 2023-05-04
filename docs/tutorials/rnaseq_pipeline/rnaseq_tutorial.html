@@ -124,9 +124,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li><a href="#data-analysis">Data analysis</a>
 <ul>
 <li><a href="#prepare-your-sample-table">Prepare your sample table</a></li>
-<li><a href="#login-to-rstudio">Login to RStudio</a></li>
+<li><a href="#setup-rstudio">Setup RStudio</a></li>
 <li><a href="#start-a-new-project-in-your-project-directory">Start a new project in your project directory</a></li>
-<li><a href="#upload-your-sample-table">Upload your sample table</a></li>
 <li><a href="#read-in-quantified-abundance-files">Read in quantified abundance files</a></li>
 <li><a href="#qc">QC</a></li>
 <li><a href="#differential-expression-analysis">Differential expression analysis</a></li>
@@ -137,7 +136,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="introduction" class="level1">
 <h1>Introduction</h1>
 <p>This brief tutorial will show you the general steps I use when analyzing RNAseq data. A majority of this pipeline has been streamlined and many assumptions have been made about the structure of the data and the experimental design as a starting point for your analysis.</p>
-<p>I will assume you have sequenced your samples using <a href="https://www.genewiz.com/">GENEWIZ</a> and your data has either been downloaded via their <a href="https://3478602.fs1.hubspotusercontent-na1.net/hubfs/3478602/13012-M%26G%200222%20sFTP%20Guide-3.pdf">instuctions</a> or you have a physical hard drive containing the data in your possession. You will have a data structure that looks like the following:</p>
+<p>I will assume you have sequenced your samples using <a href="https://www.genewiz.com/">GeneWiz</a> and your data has either been downloaded via their <a href="https://3478602.fs1.hubspotusercontent-na1.net/hubfs/3478602/13012-M%26G%200222%20sFTP%20Guide-3.pdf">instructions</a> or you have a physical hard drive containing the data in your possession. You will have a data structure that looks like the following:</p>
 <ul>
 <li>Project_ID
 <ul>
@@ -282,10 +281,20 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>Make sure to save the file as a .csv (CSV UTF-8), this is the fifth option down in the save-as dialog in Excel. The filename should be <code>samples.csv</code> and it should be placed in the <code>MYPROJECT</code> directory.</p>
 <p><img src="./images/save_samples.png" class="img-fluid"></p>
 </section>
-<section id="login-to-rstudio" class="level2">
-<h2 class="anchored" data-anchor-id="login-to-rstudio">Login to RStudio</h2>
+<section id="setup-rstudio" class="level2">
+<h2 class="anchored" data-anchor-id="setup-rstudio">Setup RStudio</h2>
 <p>We will use RStudio to perform the rest of the analysis, follow <a href="https://posit.co/download/rstudio-desktop/">these instructions</a> for installation.</p>
 <p>To get acclimated with RStudio, please consult <a href="https://www.datacamp.com/tutorial/r-studio-tutorial">this tutorial</a>.</p>
+<blockquote class="blockquote">
+<p><strong><em>NOTE:</em></strong> We will need to install several packages for this analysis, do so with the following code:</p>
+</blockquote>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">require</span>(<span class="st">"BiocManager"</span>, <span class="at">quietly =</span> <span class="cn">TRUE</span>))</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">install.packages</span>(<span class="st">"BiocManager"</span>)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>BiocManager<span class="sc">::</span><span class="fu">install</span>(<span class="st">"DESeq2"</span>)</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>BiocManager<span class="sc">::</span><span class="fu">install</span>(<span class="st">"biomaRt"</span>)</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>BiocManager<span class="sc">::</span><span class="fu">install</span>(<span class="st">"tximport"</span>)</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>BiocManager<span class="sc">::</span><span class="fu">install</span>(<span class="st">"EnhancedVolcano"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
 <section id="start-a-new-project-in-your-project-directory" class="level2">
 <h2 class="anchored" data-anchor-id="start-a-new-project-in-your-project-directory">Start a new project in your project directory</h2>
@@ -310,50 +319,50 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="anchored" data-anchor-id="read-in-quantified-abundance-files">Read in quantified abundance files</h2>
 <p>We will use the Bioconductor <a href="https://bioconductor.org/packages/release/bioc/html/tximport.html">tximport</a> package to read in our quantified abundance tables using the <strong>samples.csv</strong> file as a guide.</p>
 <p>In your R script file add the following code:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load Libraries</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(here)</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(rio)</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(CustomRFuncs) <span class="co"># install using devtools::install_github("fbearoff/CustomRFuncs")</span></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(DESeq2)</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(data.table)</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(readr)</span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tximport)</span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>here<span class="sc">::</span><span class="fu">i_am</span>(<span class="st">"demo.R"</span>) <span class="do">## THIS MUST MATCH THE FILENAME</span></span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="do">## What species?</span></span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="do">## "rnorvegicus", "mmusculus", "hsapiens"</span></span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>species <span class="ot">&lt;-</span> <span class="st">"hsapiens"</span></span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="co"># TxImport</span></span>
-<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>samples <span class="ot">&lt;-</span></span>
-<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">import</span>(<span class="fu">here</span>(<span class="st">"samples.csv"</span>), <span class="at">header =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="fu">rownames</span>(samples) <span class="ot">&lt;-</span> samples<span class="sc">$</span>sample.id</span>
-<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>samples<span class="sc">$</span>mapped_percent <span class="ot">&lt;-</span></span>
-<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">import</span>(<span class="fu">here</span>(<span class="st">"salmon_output"</span>, <span class="st">"mapped_percent.txt"</span>))[, <span class="dv">2</span>]</span>
-<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>files <span class="ot">&lt;-</span> <span class="fu">here</span>(<span class="st">"salmon_output"</span>, <span class="st">"quants"</span>, samples<span class="sc">$</span>sample.id, <span class="st">"quant.sf"</span>)</span>
-<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(files) <span class="ot">&lt;-</span> samples<span class="sc">$</span>sample.id</span>
-<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a><span class="fu">all</span>(<span class="fu">file.exists</span>(files))</span>
-<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>tx2gene <span class="ot">&lt;-</span> <span class="fu">as.data.table</span>(<span class="fu">getTx2gene</span>(species))</span>
-<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>txi <span class="ot">&lt;-</span> <span class="fu">tximport</span>(files, <span class="at">type =</span> <span class="st">"salmon"</span>, <span class="at">tx2gene =</span> tx2gene[, <span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>])</span>
-<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>txi_abund <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(txi<span class="sc">$</span>abundance)</span>
-<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>gene_synonym <span class="ot">&lt;-</span> <span class="fu">unique</span>(tx2gene[, <span class="sc">-</span><span class="dv">1</span>])</span>
-<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>txi_abund <span class="ot">&lt;-</span> <span class="fu">merge</span>(txi_abund,</span>
-<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>  gene_synonym,</span>
-<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>  <span class="at">by.x =</span> <span class="st">"row.names"</span>,</span>
-<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>  <span class="at">by.y =</span> <span class="st">"gene_id"</span></span>
-<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>txi_abund <span class="ot">&lt;-</span> dplyr<span class="sc">::</span><span class="fu">rename</span>(txi_abund, <span class="at">gene_id =</span> Row.names)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load Libraries</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(here)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(rio)</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(CustomRFuncs) <span class="co"># install using devtools::install_github("fbearoff/CustomRFuncs")</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(DESeq2)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(data.table)</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(readr)</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tximport)</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>here<span class="sc">::</span><span class="fu">i_am</span>(<span class="st">"demo.R"</span>) <span class="do">## THIS MUST MATCH THE FILENAME</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="do">## What species?</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="do">## "rnorvegicus", "mmusculus", "hsapiens"</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>species <span class="ot">&lt;-</span> <span class="st">"hsapiens"</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="co"># TxImport</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>samples <span class="ot">&lt;-</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">import</span>(<span class="fu">here</span>(<span class="st">"samples.csv"</span>), <span class="at">header =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a><span class="fu">rownames</span>(samples) <span class="ot">&lt;-</span> samples<span class="sc">$</span>sample.id</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>samples<span class="sc">$</span>mapped_percent <span class="ot">&lt;-</span></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">import</span>(<span class="fu">here</span>(<span class="st">"salmon_output"</span>, <span class="st">"mapped_percent.txt"</span>))[, <span class="dv">2</span>]</span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>files <span class="ot">&lt;-</span> <span class="fu">here</span>(<span class="st">"salmon_output"</span>, <span class="st">"quants"</span>, samples<span class="sc">$</span>sample.id, <span class="st">"quant.sf"</span>)</span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(files) <span class="ot">&lt;-</span> samples<span class="sc">$</span>sample.id</span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a><span class="fu">all</span>(<span class="fu">file.exists</span>(files))</span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>tx2gene <span class="ot">&lt;-</span> <span class="fu">as.data.table</span>(<span class="fu">getTx2gene</span>(species))</span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>txi <span class="ot">&lt;-</span> <span class="fu">tximport</span>(files, <span class="at">type =</span> <span class="st">"salmon"</span>, <span class="at">tx2gene =</span> tx2gene[, <span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>])</span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>txi_abund <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(txi<span class="sc">$</span>abundance)</span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>gene_synonym <span class="ot">&lt;-</span> <span class="fu">unique</span>(tx2gene[, <span class="sc">-</span><span class="dv">1</span>])</span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a>txi_abund <span class="ot">&lt;-</span> <span class="fu">merge</span>(txi_abund,</span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a>  gene_synonym,</span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a>  <span class="at">by.x =</span> <span class="st">"row.names"</span>,</span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a>  <span class="at">by.y =</span> <span class="st">"gene_id"</span></span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a>txi_abund <span class="ot">&lt;-</span> dplyr<span class="sc">::</span><span class="fu">rename</span>(txi_abund, <span class="at">gene_id =</span> Row.names)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>Run the above code by highlighting it and pressing <code>CTRL-ENTER</code>. This code first imports our sample data and condition table and then maps sample names to the appropriate files. It generates a <code>tx2gene</code> object which maps the transcripts we quantified to their gene ID, and pulls in other relevant metadata including gene name, genomic location, and description. Finally, a complete gene abundance object named <code>txi_abundance</code> is generated.</p>
 <p>We will now utilize <a href="https://bioconductor.org/packages/release/bioc/html/DESeq2.html">DESeq2</a> to model our experimental data with the following code.</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># DESeq2</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">rownames</span>(samples) <span class="ot">&lt;-</span> <span class="fu">colnames</span>(txi<span class="sc">$</span>counts)</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>dds <span class="ot">&lt;-</span> <span class="fu">DESeqDataSetFromTximport</span>(txi,</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">colData =</span> samples,</span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">design =</span> <span class="sc">~</span>condition</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>dds <span class="ot">&lt;-</span> <span class="fu">DESeq</span>(dds)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># DESeq2</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">rownames</span>(samples) <span class="ot">&lt;-</span> <span class="fu">colnames</span>(txi<span class="sc">$</span>counts)</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>dds <span class="ot">&lt;-</span> <span class="fu">DESeqDataSetFromTximport</span>(txi,</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">colData =</span> samples,</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">design =</span> <span class="sc">~</span>condition</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>dds <span class="ot">&lt;-</span> <span class="fu">DESeq</span>(dds)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>We have created a DESeqDataSet object called <code>dds</code> which contains all our samples modeled by the “condition” factor we specified in <strong>samples.csv</strong>. This will be the basis for downstream analysis. More complex experimental designs will alter the “design” formula, consult <a href="http://bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html">this vignette</a> for more information.</p>
 </section>
 <section id="qc" class="level2">
@@ -362,7 +371,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <blockquote class="blockquote">
 <p><strong><em>NOTE:</em></strong> <code>CustomRFuncs</code> is an R package I have written containing functions wrapping generalized analysis tasks. These functions are opinionated and not designed for tweaking, you can access the underlying source code by simply typing the functions name in the R console. e.g.&nbsp;<code>plotPCA</code></p>
 </blockquote>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>CustomRFuncs<span class="sc">::</span><span class="fu">plotPCA</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>CustomRFuncs<span class="sc">::</span><span class="fu">plotPCA</span>(dds)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p><img src="./images/pca.png" class="img-fluid"></p>
 <p>You should see a PCA plot pop up in the “Plots” tab in the lower right of the RStudio interface that resembles the above figure. If you would like to save the image click the “export” button.</p>
 <p><img src="./images/export_image.png" class="img-fluid"></p>
@@ -371,19 +380,22 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="anchored" data-anchor-id="differential-expression-analysis">Differential expression analysis</h2>
 <p>We will now start comparing different conditions in our experiment. I am using example data from the <a href="https://pubmed.ncbi.nlm.nih.gov/36571978/">α-syn project</a> , so we will compare the monomer and oligomer α-syn treatments.</p>
 <p>We can generate a comparison table using the following code:</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>comp <span class="ot">&lt;-</span> CustomRFuncs<span class="sc">::</span><span class="fu">compDESeq2</span>(<span class="st">"10ug_ml_ASM"</span>, <span class="st">"10ug_ml_ASPFF"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>We can access the table by typing <code>comp</code> into the console or clicking its name in the “Environment” tab in the upper right of the RSudio interface.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>comp <span class="ot">&lt;-</span> CustomRFuncs<span class="sc">::</span><span class="fu">compDESeq2</span>(<span class="st">"10ug_ml_ASM"</span>, <span class="st">"10ug_ml_ASPFF"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>We can access the table by typing <code>comp</code> into the console or clicking its name in the “Environment” tab in the upper right of the RStudio interface.</p>
 <p><img src="./images/view_table.png" class="img-fluid"></p>
 <p>This comparison results table can be saved by running the following code:</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">export</span>(comp, <span class="st">"comp.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">export</span>(comp, <span class="st">"comp.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>Typical exploratory analysis figures we can make includes an MA plot that shows mean expression against fold change:</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plotMA</span>(<span class="st">"10ug_ml_ASM"</span>, <span class="st">"10ug_ml_ASPFF"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>CustomRFuncs<span class="sc">::</span><span class="fu">plotMA</span>(<span class="st">"10ug_ml_ASM"</span>, <span class="st">"10ug_ml_ASPFF"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p><img src="./images/MA.png" class="img-fluid"></p>
+<p>Volcano plot that shows significance against fold change:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>CustomRFuncs<span class="sc">::</span><span class="fu">plotVolcano</span>(<span class="st">"10ug_ml_ASM"</span>, <span class="st">"10ug_ml_ASPFF"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p><img src="./images/volcano.png" class="img-fluid"></p>
 <p>Clustered heatmap of top differentially expressed genes:</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">clusteredHeatmap</span>(<span class="st">"10ug_ml_ASM"</span>, <span class="st">"10ug_ml_ASPFF"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>CustomRFuncs<span class="sc">::</span><span class="fu">clusteredHeatmap</span>(<span class="st">"10ug_ml_ASM"</span>, <span class="st">"10ug_ml_ASPFF"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p><img src="./images/heatmap.png" class="img-fluid"></p>
 <p>Plot a particular gene of interest:</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plotGene</span>(<span class="st">"IL1B"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>CustomRFuncs<span class="sc">::</span><span class="fu">plotGene</span>(<span class="st">"IL1B"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p><img src="./images/plot_gene.png" class="img-fluid"></p>
 </section>
 </section>

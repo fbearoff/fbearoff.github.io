@@ -19,9 +19,8 @@ format:
   - [Index and Quantify the RNAseq Data](#index-and-quantify-the-rnaseq-data)
 - [Data analysis](#data-analysis)
   - [Prepare your sample table](#prepare-your-sample-table)
-  - [Login to RStudio](#login-to-rstudio)
+  - [Setup RStudio](#setup-rstudio)
   - [Start a new project in your project directory](#start-a-new-project-in-your-project-directory)
-  - [Upload your sample table](#upload-your-sample-table)
   - [Read in quantified abundance files](#read-in-quantified-abundance-files)
   - [QC](#qc)
   - [Differential expression analysis](#differential-expression-analysis)
@@ -37,9 +36,9 @@ been made about the structure of the data and the experimental design as a
 starting point for your analysis.
 
 I will assume you have sequenced your samples using
-[GENEWIZ](https://www.genewiz.com/) and your data has either been downloaded via
+[GeneWiz](https://www.genewiz.com/) and your data has either been downloaded via
 their
-[instuctions](https://3478602.fs1.hubspotusercontent-na1.net/hubfs/3478602/13012-M%26G%200222%20sFTP%20Guide-3.pdf)
+[instructions](https://3478602.fs1.hubspotusercontent-na1.net/hubfs/3478602/13012-M%26G%200222%20sFTP%20Guide-3.pdf)
 or you have a physical hard drive containing the data in your possession. You
 will have a data structure that looks like the following:
 
@@ -47,7 +46,7 @@ will have a data structure that looks like the following:
   - fastq_00
     - sampleID_R1_001.fastq.gz
     - sampleID_R2_001.fastq.gz
-    - ...
+    - …
 
 # Perform quantification against the transcriptome
 
@@ -188,7 +187,7 @@ should be placed in the `MYPROJECT` directory.
 
 ![](./images/save_samples.png)
 
-## Login to RStudio
+## Setup RStudio
 
 We will use RStudio to perform the rest of the analysis, follow
 [these instructions](https://posit.co/download/rstudio-desktop/) for
@@ -196,6 +195,19 @@ installation.
 
 To get acclimated with RStudio, please consult
 [this tutorial](https://www.datacamp.com/tutorial/r-studio-tutorial).
+
+> **_NOTE:_** We will need to install several packages for this analysis, do so
+> with the following code:
+
+```r
+if (!require("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+
+BiocManager::install("DESeq2")
+BiocManager::install("biomaRt")
+BiocManager::install("tximport")
+BiocManager::install("EnhancedVolcano")
+```
 
 ## Start a new project in your project directory
 
@@ -301,7 +313,7 @@ We will now generate a 2D PCA plot with the following code:
 > typing the functions name in the R console. e.g. `plotPCA`
 
 ```r
-CustomRFuncs::plotPCA()
+CustomRFuncs::plotPCA(dds)
 ```
 
 ![](./images/pca.png)
@@ -325,7 +337,7 @@ comp <- CustomRFuncs::compDESeq2("10ug_ml_ASM", "10ug_ml_ASPFF")
 ```
 
 We can access the table by typing `comp` into the console or clicking its name
-in the "Environment" tab in the upper right of the RSudio interface.
+in the "Environment" tab in the upper right of the RStudio interface.
 
 ![](./images/view_table.png)
 
@@ -339,15 +351,23 @@ Typical exploratory analysis figures we can make includes an MA plot that shows
 mean expression against fold change:
 
 ```r
-plotMA("10ug_ml_ASM", "10ug_ml_ASPFF")
+CustomRFuncs::plotMA("10ug_ml_ASM", "10ug_ml_ASPFF")
 ```
 
 ![](./images/MA.png)
 
+Volcano plot that shows significance against fold change:
+
+```r
+CustomRFuncs::plotVolcano("10ug_ml_ASM", "10ug_ml_ASPFF")
+```
+
+![](./images/volcano.png)
+
 Clustered heatmap of top differentially expressed genes:
 
 ```r
-clusteredHeatmap("10ug_ml_ASM", "10ug_ml_ASPFF")
+CustomRFuncs::clusteredHeatmap("10ug_ml_ASM", "10ug_ml_ASPFF")
 ```
 
 ![](./images/heatmap.png)
@@ -355,7 +375,7 @@ clusteredHeatmap("10ug_ml_ASM", "10ug_ml_ASPFF")
 Plot a particular gene of interest:
 
 ```r
-plotGene("IL1B")
+CustomRFuncs::plotGene("IL1B")
 ```
 
 ![](./images/plot_gene.png)
