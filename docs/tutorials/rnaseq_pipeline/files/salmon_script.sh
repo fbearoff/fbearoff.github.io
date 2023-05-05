@@ -1,24 +1,26 @@
 #!/bin/bash
 
-##EDIT ME
-read_files="location/of/your/rnaseq/reads/YOUR_PROJECT_NAME/YOUR_PROJECT_ID/00_fastq"
-#EXAMPLE read_files="$HOME/data/rnaseq/YOUR_PROJECT_NAME/YOUR_PROJECT_ID/00_fastq"
-##EDIT ME
+#supply genome and transcriptome files from Ensembl, place in the directory where this script is located
+#EXAMPLE genome "Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz"
+#EXAMPLE transcriptome "Homo_sapiens.GRCh38.cdna.all.fa.gz"
 
-#supply these files from ensembl, place in the directory where this script is located
-genome="*.primary_assembly.fa.gz"
-transcriptome="*.cdna.all.fa.gz"
+# run this script with the following command `bash salmon_script.sh`
+
+## EDIT ME if the `00_fastq` directory is not in the current directory
+read_files="./00_fastq"
+## EDIT ME
 
 ##LEAVE ALONE
+genome="dna.primary_assembly.fa.gz"
+transcriptome="cdna.all.fa.gz"
 threads="$(grep -c ^processor /proc/cpuinfo)"
-parentdir="$(dirname "$genome")"
 
-grep "^>" <(gunzip -c "$genome") | cut -d " " -f 1 >"$parentdir"/decoys.txt
-sed -i.bak -e 's/>//g' "$parentdir"/decoys.txt
+grep "^>" <(gunzip -c ./*"$genome") | cut -d " " -f 1 >decoys.txt
+sed -i.bak -e 's/>//g' decoys.txt
 
-cat "$transcriptome" "$genome" >"$parentdir"/gentrome.fa.gz
+cat ./*"$transcriptome" ./*"$genome" >gentrome.fa.gz
 
-salmon index -t "$parentdir"/gentrome.fa.gz -d "$parentdir"/decoys.txt -p "$threads" -i "$parentdir"/salmon_index
+salmon index -t gentrome.fa.gz -d decoys.txt -p "$threads" -i ./salmon_index
 
 #quantify transcripts against index
 destination_directory="./salmon_output"

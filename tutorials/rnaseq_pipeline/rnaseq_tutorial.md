@@ -77,38 +77,37 @@ Make a directory for your project `mkdir MYPROJECT`
 Change into that directory `cd MYPROJECT`
 
 Copy the following code into a new file named `salmon_script.sh` in the
-`MYPROJECT` directory. Replace `YOUR_PROJECT_ID` where denoted below with your
-specific values. You may also download the file
+`MYPROJECT` directory. You may also download the file
 [here](./files/salmon_script.sh).
 
-> **_EXAMPLE:_** `read_files="./30-689021056/00_fastq"`
-
 > **_NOTE:_** The above assumes you have placed your read files in the current
-> directory, the location you specify has to be the location of the directory
-> containing the .fastq files.
+> directory, if this is not the case you will need to edit the file to specify
+> the location of the directory containing the .fastq files.
 
 ```bash
 #!/bin/bash
 
-##EDIT ME
-read_files="location/of/your/rnaseq/reads/YOUR_PROJECT_NAME/YOUR_PROJECT_ID/00_fastq"
-#EXAMPLE read_files="$HOME/data/rnaseq/YOUR_PROJECT_NAME/YOUR_PROJECT_ID/00_fastq"
-##EDIT ME
+#supply genome and transcriptome files from Ensembl, place in the directory where this script is located
+#EXAMPLE genome "Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz"  
+#EXAMPLE transcriptome "Homo_sapiens.GRCh38.cdna.all.fa.gz"
 
-#supply these files from ensembl, place in the directory where this script is located
-genome="*.primary_assembly.fa.gz"
-transcriptome="*.cdna.all.fa.gz"
+# run this script with the following command `bash salmon_script.sh`
+
+## EDIT ME if the `00_fastq` directory is not in the current directory
+read_files="./00_fastq"
+## EDIT ME 
 
 ##LEAVE ALONE
+genome="dna.primary_assembly.fa.gz"
+transcriptome="cdna.all.fa.gz"
 threads="$(grep -c ^processor /proc/cpuinfo)"
-parentdir="$(dirname "$genome")"
 
-grep "^>" <(gunzip -c "$genome") | cut -d " " -f 1 >"$parentdir"/decoys.txt
-sed -i.bak -e 's/>//g' "$parentdir"/decoys.txt
+grep "^>" <(gunzip -c ./*"$genome") | cut -d " " -f 1 >decoys.txt
+sed -i.bak -e 's/>//g' decoys.txt
 
-cat "$transcriptome" "$genome" >"$parentdir"/gentrome.fa.gz
+cat ./*"$transcriptome" ./*"$genome" >gentrome.fa.gz
 
-salmon index -t "$parentdir"/gentrome.fa.gz -d "$parentdir"/decoys.txt -p "$threads" -i "$parentdir"/salmon_index
+salmon index -t gentrome.fa.gz -d decoys.txt -p "$threads" -i ./salmon_index
 
 #quantify transcripts against index
 destination_directory="./salmon_output"
@@ -137,7 +136,7 @@ Retrieve these files from
 ### Genome
 
 - Find your organism and click the first "FASTA" link for "DNA"
-- Find the file named **"\*.primary.assembly.fa.gz"** and download it to your
+- Find the file named **"\*.primary_assembly.fa.gz"** and download it to your
   working directory.
 
 ### Transcriptome
@@ -186,6 +185,21 @@ in the save-as dialog in Excel. The filename should be `samples.csv` and it
 should be placed in the `MYPROJECT` directory.
 
 ![](./images/save_samples.png)
+
+## Working Directory Structure
+
+Your final working directory should now look like this:
+
+- PROJECTS
+  - MYPROJECT
+    - 00_fastq
+      - sampleID_R1_001
+      - sampleID_R2_001
+      - …
+    - salmon_script.sh
+    - *.dna.primary_assembly.fa.gz
+    - *.cdna.all.fa.gz
+    - samples.csv
 
 ## Setup RStudio
 
