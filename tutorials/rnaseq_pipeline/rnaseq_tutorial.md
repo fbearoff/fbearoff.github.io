@@ -1,7 +1,7 @@
 ---
 title: Frank's RNAseq Analysis Pipeline
 author: Frank Bearoff
-date: 2023-05-02
+date: 2023-05-05
 toc-title: Contents
 format:
   html:
@@ -19,6 +19,7 @@ format:
   - [Index and Quantify the RNAseq Data](#index-and-quantify-the-rnaseq-data)
 - [Data analysis](#data-analysis)
   - [Prepare your sample table](#prepare-your-sample-table)
+  - [Working Directory Structure](#working-directory-structure)
   - [Setup RStudio](#setup-rstudio)
   - [Start a new project in your project directory](#start-a-new-project-in-your-project-directory)
   - [Read in quantified abundance files](#read-in-quantified-abundance-files)
@@ -192,10 +193,12 @@ Your final working directory should now look like this:
 
 - PROJECTS
   - MYPROJECT
-    - 00_fastq
+    - 00_fastq/
       - sampleID_R1_001
       - sampleID_R2_001
       - …
+    - salmon_output/
+    - salmon_index/
     - salmon_script.sh
     - *.dna.primary_assembly.fa.gz
     - *.cdna.all.fa.gz

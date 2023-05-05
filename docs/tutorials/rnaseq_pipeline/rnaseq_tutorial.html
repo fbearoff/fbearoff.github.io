@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Frank Bearoff">
-<meta name="dcterms.date" content="2023-05-02">
+<meta name="dcterms.date" content="2023-05-05">
 
 <title>Frank’s RNAseq Analysis Pipeline</title>
 <style>
@@ -98,7 +98,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">May 2, 2023</p>
+      <p class="date">May 5, 2023</p>
     </div>
   </div>
   
@@ -124,6 +124,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li><a href="#data-analysis">Data analysis</a>
 <ul>
 <li><a href="#prepare-your-sample-table">Prepare your sample table</a></li>
+<li><a href="#working-directory-structure">Working Directory Structure</a></li>
 <li><a href="#setup-rstudio">Setup RStudio</a></li>
 <li><a href="#start-a-new-project-in-your-project-directory">Start a new project in your project directory</a></li>
 <li><a href="#read-in-quantified-abundance-files">Read in quantified abundance files</a></li>
@@ -288,12 +289,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <ul>
 <li>MYPROJECT
 <ul>
-<li>00_fastq
+<li>00_fastq/
 <ul>
 <li>sampleID_R1_001</li>
 <li>sampleID_R2_001</li>
 <li>…</li>
 </ul></li>
+<li>salmon_output/</li>
+<li>salmon_index/</li>
 <li>salmon_script.sh</li>
 <li>*.dna.primary_assembly.fa.gz</li>
 <li>*.cdna.all.fa.gz</li>
