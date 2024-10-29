@@ -1,7 +1,7 @@
 ---
 title: Frank's RNAseq Analysis Pipeline
 author: Frank Bearoff
-date: 2023-05-05
+date: 2024-10-29
 toc-title: Contents
 format:
   html:
@@ -217,6 +217,9 @@ To get acclimated with RStudio, please consult
 > with the following code:
 
 ```r
+install.packages("devtools")
+devtools::install_github("fbearoff/CustomRFuncs")
+
 if (!require("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
 
@@ -224,6 +227,7 @@ BiocManager::install("DESeq2")
 BiocManager::install("biomaRt")
 BiocManager::install("tximport")
 BiocManager::install("EnhancedVolcano")
+BiocManager::install("ComplexHeatmap")
 ```
 
 ## Start a new project in your project directory
